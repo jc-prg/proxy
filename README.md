@@ -31,3 +31,4 @@ $ ./start start
 
 * create domain configurations based on config file and template
 * ensure correct link to key files for different domains created with letsencrypt
+* install crontab per script
