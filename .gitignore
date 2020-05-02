@@ -6,3 +6,5 @@ config/config_prod
 docker-compose.yml
 
 start
+
+*.swp
