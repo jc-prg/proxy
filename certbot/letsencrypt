@@ -1,0 +1,160 @@
+#!/bin/bash
+
+source "letsencrypt.conf"
+
+echo
+echo "-------------------------------------"
+echo " Start jc://letsencrypt/"
+echo " (by Christoph Kloth)"
+echo "-------------------------------------"
+echo
+echo
+echo "...... UNDER CONSTRUCTION ..........."
+echo
+echo
+echo "Please ensure, that all requests for those domains are redirected to this server and"
+echo "the ports 80 and 443 are not used from other servers!"
+echo
+echo " - EMAIL:   $LETSENCRYPT_EMAIL"
+echo " - DOMAINS: $LETSENCRYPT_DOMAINS"
+echo " - HTML:    $LETSENCRYPT_HTML"
+echo
+echo
+
+config=$1
+
+if [ ! $1 ]; then
+  echo "Press key - your options:"
+  echo
+  echo " 'q' - exit"
+  echo " 'i' - install certbot"
+  echo " 'c' - create certificates"
+  echo " 'e' - (re)create certifiates and expand"
+  echo " 'r' - renew certificates"
+  echo " 'f' - force renew certificates"
+  echo " 'u' - unistall certbot"
+  echo
+
+  count=0
+  while : ; do
+    read -n 1 k <&1
+    if [[ $k = q ]] ; then
+       printf "\nQuitting from the program.\n"
+       exit 0
+    elif [[ $k = i ]] ; then
+       config="install"
+       break
+    elif [[ $k = c ]] ; then
+       config="create"
+       break
+    elif [[ $k = r ]] ; then
+       config="renew"
+       break
+    elif [[ $k = f ]] ; then
+       config="renew_force"
+       break
+    elif [[ $k = e ]] ; then
+       config="create_expand"
+       break
+    elif [[ $k = u ]] ; then
+       config="uninstall"
+       break
+    else
+       ((count=$count+1))
+       printf "\nIterate for $count times\n"
+       echo "Press 'q' to exit"
+    fi
+  done
+fi
+
+
+install_certbot() {
+        echo
+	echo "Install CERTBOT ..."
+	echo
+	sudo apt-get update
+	sudo apt-get upgrade
+	#sudo apt-get install -y python-certbot-apache
+	sudo apt-get install -y certbot
+	}
+
+uninstall_certbot() {
+        echo
+	echo "Uninstall CERTBOT ..."
+	echo
+	#sudo apt-get remove -y python-certbot-apache
+	sudo apt-get remove -y certbot
+	}
+
+create() {
+        echo
+	echo "Create CERTIFICATES ..."
+	echo
+	#certbot run --webroot --webroot-path $LETSENCRYPT_HTML -d $LETSENCRYPT_DOMAINS --non-interactive --email $LETSENCRYPT_EMAIL --agree-tos --no-eff-email --renew-with-new-domains --keep-until-expiring
+	certbot certonly --webroot --webroot-path $LETSENCRYPT_HTML -d $LETSENCRYPT_DOMAINS --non-interactive --email $LETSENCRYPT_EMAIL --agree-tos --no-eff-email --renew-with-new-domains --keep-until-expiring
+	#certbot run --apache -d $LETSENCRYPT_DOMAINS --non-interactive --email $LETSENCRYPT_EMAIL --agree-tos --no-eff-email --renew-with-new-domains --keep-until-expiring \
+	#--test-cert \
+	#--dry-run\
+	}
+
+create_expand() {
+        echo
+	echo "Create CERTIFICATES ..."
+	echo
+	#certbot run --webroot --webroot-path $LETSENCRYPT_HTML -d $LETSENCRYPT_DOMAINS --non-interactive --email $LETSENCRYPT_EMAIL --agree-tos --no-eff-email --renew-with-new-domains --keep-until-expiring
+	certbot certonly --webroot --webroot-path $LETSENCRYPT_HTML -d $LETSENCRYPT_DOMAINS --expand --non-interactive --email $LETSENCRYPT_EMAIL --agree-tos --no-eff-email --renew-with-new-domains --keep-until-expiring
+	#certbot run --apache -d $LETSENCRYPT_DOMAINS --non-interactive --email $LETSENCRYPT_EMAIL --agree-tos --no-eff-email --renew-with-new-domains --keep-until-expiring \
+	#--test-cert \
+	#--dry-run\
+	}
+
+renew() {
+        echo
+	echo "Renew CERTIFICATES ..."
+	echo
+	certbot renew --webroot --webroot-path $LETSENCRYPT_HTML --non-interactive --email $LETSENCRYPT_EMAIL --agree-tos --no-eff-email --renew-with-new-domains --keep-until-expiring
+        echo "ready" > ./check/check
+	#certbot renew --apache --non-interactive --email $LETSENCRYPT_EMAIL --agree-tos --no-eff-email --renew-with-new-domains --keep-until-expiring \
+	#--force-renewal \
+	#--test-cert \
+	#--dry-run \
+	}
+
+renew_force() {
+        echo
+	echo "Renew CERTIFICATES ..."
+	echo
+	certbot renew --webroot --webroot-path $LETSENCRYPT_HTML --non-interactive --email $LETSENCRYPT_EMAIL --agree-tos --no-eff-email --renew-with-new-domains --keep-until-expiring --force-renewal
+        echo "ready" > ./check/check
+	}
+
+renew_expand() {
+        echo
+	echo "Renew CERTIFICATES ..."
+	echo
+	certbot renew --webroot --webroot-path $LETSENCRYPT_HTML --non-interactive --email $LETSENCRYPT_EMAIL --agree-tos --no-eff-email --renew-with-new-domains --keep-until-expiring --force-renewal --expand
+        echo "ready" > ./check/check
+	}
+
+
+if [[ $config = "install" ]] ; then
+	install_certbot
+elif [[ $config = "create" ]] ; then
+	create
+elif [[ $config = "create_expand" ]] ; then
+	create_expand
+elif [[ $config = "renew" ]] ; then
+	renew
+elif [[ $config = "renew_force" ]] ; then
+	renew_force
+elif [[ $config = "renew_expand" ]] ; then
+	renew_expand
+elif [[ $config = "uninstall" ]] ; then
+	uninstall_certbot
+else
+	echo
+	echo "nothing to do ($config)"
+	echo
+fi
+
+echo "Done."
