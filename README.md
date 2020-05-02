@@ -17,7 +17,7 @@ $ ./create prod
 
 *2. Create Domain Configurations for NGINX*
 
-  * use [config/templates/domain.conf](config/templates/domain.conf) to create configuration for your domain
+  * use [config/templates/domain.conf.sample](config/templates/domain.conf.sample) to create configuration for your domain
   * copy to [data/nginx-domain](#) ...
 
 *3. Start Proxy*
