@@ -1,7 +1,10 @@
 #!/bin/bash
+#---------------------------------------------
 
+# Proxy configuration
 export PROXY_DIR="/projects/prod/proxy"
 
+# Letsencrypt configuration
 export LETSENCRYPT_EMAIL="your-email@example.com"
 export LETSENCRYPT_DOMAINS="sub-domain-1.example.com,sub-domain-2.example.com"
 
