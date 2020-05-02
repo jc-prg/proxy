@@ -15,12 +15,21 @@ $ nano config_prod                   # edit for your needs
 $ ./create prod
 ```
 
-*2. Create Domain Configurations for NGINX*
+*2. Install Letsencrypt*
+
+```bash
+$ cd ../
+$ cd certbot/
+$ ./letsencrypt install
+```
+
+
+*3. Create Domain Configurations for NGINX*
 
   * use [config/templates/domain.conf.sample](config/templates/domain.conf.sample) to create configuration for your domain
   * copy to a file per domain into the directory [data/nginx-domains](#) ...
 
-*3. Start Proxy*
+*4. Start Proxy*
 
 ```bash
 $ cd ../
