@@ -21,7 +21,7 @@ stop_proxy() {
 
 renew_cert() {
 	stop_proxy
-        ${dir}/certbot/letsencrypt
+        ${dir}/certbot/letsencrypt renew
 	start_proxy
 	}
 
