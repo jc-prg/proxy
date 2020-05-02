@@ -1,0 +1,61 @@
+#!/bin/bash
+#--------------------------
+# project specific substitution commands
+
+rm -rf ../docker-compose.yml
+envsubst < "templates/docker-compose.yml" > "../docker-compose.yml"
+
+rm -rf ../certbot/letsencrypt.conf
+envsubst < "templates/letsencrypt.conf" > "../certbot/letsencrypt.conf"
+
+rm -rf ../start
+envsubst < "templates/start" > "../start"
+chmod 755 ../start
+
+#----------------
+
+cd /etc
+mkdir letsencrypt
+
+#----------------
+
+#rm -rf ../docker-compose-rpi.yml
+#envsubst < "templates/docker-compose-rpi.yml" > "../docker-compose-rpi.yml"
+
+#rm -rf ../app/config_stage.js
+#envsubst < "templates/config_stage.js" > "../app/config_stage.js"
+
+#rm -rf ../server/modules/config_stage.py
+#envsubst < "templates/config_stage.py" > "../server/modules/config_stage.py"
+
+# autohotspot
+
+#rm -rf autohotspot/templates/autohotspot
+#envsubst < "templates/autohotspot.template" > "autohotspot/templates/autohotspot"
+#chmod 755 autohotspot/templates/autohotspot
+
+#rm -rf autohotspot/templates/wpa_supplicant.conf
+#envsubst < "templates/wpa_supplicant.conf.template" > "autohotspot/templates/wpa_supplicant.conf"
+#wpa_passphrase $WIFI_SSID $WIFI_PWD >> autohotspot/templates/wpa_supplicant.conf
+
+#rm -rf autohotspot/templates/hostapd.conf
+#envsubst < "templates/hostapd.conf.template" > "autohotspot/templates/hostapd.conf"
+
+# log and start script
+
+#mkdir ../log
+
+#rm -rf ../start
+#envsubst < "templates/start_mbox" > "../start"
+#chmod 755 ../start
+
+#rm -rf install/install-datadir
+#envsubst < "templates/install-datadir" > "./install/install-datadir"
+#chmod 755 ./install/install-datadir
+
+#rm -rf install/install-rclocal
+#envsubst < "templates/install-rclocal" > "./install/install-rclocal"
+#chmod 755 ./install/install-rclocal
+
+#rm -rf $MBOX_DIR_DATA_ROOT/active.json
+#envsubst < "templates/active.json" > "$MBOX_DIR_DATA_ROOT/active.json"

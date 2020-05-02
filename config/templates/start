@@ -1,0 +1,73 @@
+#!/bin/bash
+
+dir="${PROXY_DIR}"
+
+echo
+echo "-------------------------------------"
+echo " Start jc://proxy/"
+echo " (by Christoph Kloth)"
+echo "-------------------------------------"
+echo
+echo
+
+
+start_proxy() {
+	${DOCKERCOMPOSE_DIR} -f ${D}dir/docker-compose.yml up -d
+	}
+
+stop_proxy() {
+	${DOCKERCOMPOSE_DIR} -f ${D}dir/docker-compose.yml stop
+	}
+
+renew_cert() {
+	stop_proxy
+        ${dir}/certbot/letsencrypt
+	start_proxy
+	}
+
+
+config=${D}1
+
+if [ ! ${D}1 ]; then
+  echo "Press key - your options:"
+  echo
+  echo " 'q' - exit"
+  echo " 's' - start proxy"
+  echo " 'x' - stop proxy"
+  echo " 'z' - letsencrypt: check/renew certificates"
+  echo
+
+  count=0
+  while : ; do
+    read -n 1 k <&1
+    if [[ ${D}k = q ]] ; then
+       printf "\nQuitting from the program.\n"
+       exit 0
+    elif [[ ${D}k = s ]] ; then
+       start_proxy
+       break
+    elif [[ ${D}k = x ]] ; then
+       stop_proxy
+       break
+    elif [[ ${D}k = z ]] ; then
+       renew_cert
+       break
+    else
+       ((count=${D}count+1))
+       printf "\nIterate for $count times\n"
+       echo "Press 'q' to exit"
+    fi
+  done
+else
+  if [[ ${D}config = "start" ]] ; then
+     start_proxy
+  elif [[ ${D}config = "stop" ]] ; then
+     stop_proxy
+  elif [[ ${D}config = "renew" ]] ; then
+     renew_cert
+  fi
+fi
+
+
+echo
+echo "Done."

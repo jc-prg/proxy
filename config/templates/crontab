@@ -1,0 +1,10 @@
+#------------------------------------------------------------------
+# jc://proxy/ including letsencrypt
+#------------------------------------------------------------------
+
+# start test applications on startup
+@reboot ${PROXY_DIR}/start start
+
+# check / renew ssl certificates once a week
+03 03 * * 0 ${PROXY_DIR}/start renew
+

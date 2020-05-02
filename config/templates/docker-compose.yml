@@ -1,0 +1,29 @@
+#--------------------------------------------
+# jc://proxy/
+#--------------------------------------------
+
+version: '3'
+services:
+
+# PROXY
+#--------------------------------------------
+
+  proxy:  
+    image: ${NGINX_IMAGE}
+    container_name: ${NGINX_CONTAINER}
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+
+    volumes:
+      - ${LETSENCRYPT_SSL}:/etc/letsencrypt
+      - ${LETSENCRYPT_CERTS}:/etc/nginx/certs
+      - ${NGINX_DOMAINS}:/etc/nginx/conf.d
+      - ${NGINX_CONFIG}:/etc/nginx/nginx.conf
+      - /var/run/docker.sock:/tmp/docker.sock
+      - ./log:/var/log/nginx
+
+
+
+
