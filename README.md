@@ -26,8 +26,9 @@ $ ./letsencrypt install
 
 *3. Create Domain Configurations for NGINX*
 
-  * use [config/templates/domain.conf.sample](config/templates/domain.conf.sample) to create configuration for your domain
-  * copy to a file per domain into the directory [data/nginx-domains](#) ...
+  * define domain and forward server (PROXY\_DOMAINS) in the config file [config/config_prod](config/config_prod.sample) and *./create prod* or ...
+  * use [config/templates/domain.conf.sample](config/templates/domain.conf.sample) to create configuration for your domain and copy to a file per domain into the directory [data/nginx-domains](#) or ...
+  * use your own NGINX configuration file
 
 *4. Start Proxy*
 
@@ -38,6 +39,5 @@ $ ./start start
 
 ## open ...
 
-* create domain configurations based on config file and template
 * ensure correct link to key files for different domains created with letsencrypt
 * install crontab per script
