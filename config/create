@@ -48,6 +48,18 @@ fi
 source $config
 source templates/00-envsubst
 
+for domain in ${PROXY_DOMAINS[@]}
+do
+    IFS=";" read -r -a arr <<< "${domain}"
+
+    export SERVER_NAME="${arr[0]}"
+    export SERVER_FORWARD="${arr[1]}"
+    export SERVER_CONFIG="$SERVER_NAME.conf"
+
+    rm -rf $NGINX_DOMAINS/$SERVER_CONFIG
+    envsubst < $PROXY_DIR/config/templates/domain.conf > $NGINX_DOMAINS/$SERVER_CONFIG
+done
+
 echo
 echo "Done."
 echo
