@@ -21,7 +21,7 @@ export LETSENCRYPT_HTML="$PROXY_DIR_DATA/html"
 export LETSENCRYPT_SSL="$PROXY_DIR_DATA/letsencrypt"
 
 # Proxy configuration
-export NGINX_IMAGE="lroguet/rpi-nginx-proxy:latest"
+export NGINX_IMAGE="lroguet/rpi-nginx-proxy:latest"				# "lroguet/rpi-nginx-proxy:latest" or "jwilder/nginx-proxy"
 export NGINX_CONFIG="$PROXY_DIR_DATA/nginx/nginx.conf"
 export NGINX_DOMAINS="$PROXY_DIR_DATA/nginx-domains"
 export NGINX_CONTAINER="proxy"
