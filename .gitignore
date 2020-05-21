@@ -12,3 +12,5 @@ start
 config/nginx-domains/off/
 
 config/nginx-domains/sicher/
+
+docker-compose-certbot.yml

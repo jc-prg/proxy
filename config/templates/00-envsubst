@@ -5,8 +5,11 @@
 rm -rf ../docker-compose.yml
 envsubst < "templates/docker-compose.yml" > "../docker-compose.yml"
 
-rm -rf ../certbot/letsencrypt.conf
-envsubst < "templates/letsencrypt.conf" > "../certbot/letsencrypt.conf"
+rm -rf ../docker-compose-certbot.yml
+envsubst < "templates/docker-compose-certbot.yml" > "../docker-compose-certbot.yml"
+
+#rm -rf ../certbot/letsencrypt.conf
+#envsubst < "templates/letsencrypt.conf" > "../certbot/letsencrypt.conf"
 
 rm -rf ../start
 envsubst < "templates/start" > "../start"

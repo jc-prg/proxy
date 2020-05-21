@@ -6,8 +6,10 @@ export PROXY_DOMAINS=(
         "sub-domain-2.example.com;192.168.1.20:80"
 	"sub-domain-1.example.com;192.168.1.20:81"
 	)
-export LETSENCRYPT_DOMAINS="sub-domain-1.example.com,sub-domain-2.example.com"
-export LETSENCRYPT_EMAIL="your-email@example.com"
+export LETSENCRYPT_DOMAINS="sub-domain-1.example.com,sub-domain-2.example.com"       # list your domains, separated with comma
+export LETSENCRYPT_EMAIL="your-email@example.com"                                    # set your mail to request a letsencrypt certificate
+export LETSENCRYPT_DRYRUN="yes"                                                      # set if dry run (yes/no)
+
 
 # Proxy configuration
 export PROXY_DIR="/projects/prod/proxy"

@@ -1,0 +1,21 @@
+#--------------------------------------------
+# Certbot file ...
+#----------------------------------------
+# Edit vars in .env
+#----------------------------------------
+
+version: "3"
+services:
+
+  certbot:
+    build: certbot
+    container_name: certbot_test
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./letsencrypt:/etc/letsencrypt
+    environment:
+      - LETSENCRYPT_HOST=${LETSENCRYPT_DOMAINS}
+      - LETSENCRYPT_MAIL=${LETSENCRYPT_EMAIL}
+      - LETSENCRYPT_DRYRUN=${LETSENCRYPT_DRYRUN}
