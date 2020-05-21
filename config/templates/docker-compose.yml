@@ -20,7 +20,6 @@ services:
 
     volumes:
       - ${LETSENCRYPT_SSL}:/etc/letsencrypt
-      - ${LETSENCRYPT_CERTS}:/etc/nginx/certs
       - ${NGINX_DOMAINS}:/etc/nginx/conf.d
       - ${NGINX_CONFIG}:/etc/nginx/nginx.conf
       - /var/run/docker.sock:/tmp/docker.sock

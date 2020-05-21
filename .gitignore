@@ -8,3 +8,7 @@ docker-compose.yml
 start
 
 *.swp
+
+config/nginx-domains/off/
+
+config/nginx-domains/sicher/

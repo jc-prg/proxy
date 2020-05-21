@@ -57,7 +57,7 @@ do
     export SERVER_CONFIG="$SERVER_NAME.conf"
 
     rm -rf $NGINX_DOMAINS/$SERVER_CONFIG
-    envsubst < $PROXY_DIR/config/templates/domain.conf > $NGINX_DOMAINS/$SERVER_CONFIG
+    envsubst < $PROXY_DIR/config/templates/$PROXY_TEMP > $NGINX_DOMAINS/$SERVER_CONFIG
 done
 
 echo

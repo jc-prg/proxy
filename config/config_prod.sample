@@ -12,11 +12,11 @@ export LETSENCRYPT_EMAIL="your-email@example.com"
 # Proxy configuration
 export PROXY_DIR="/projects/prod/proxy"
 export PROXY_DIR_DATA="$PROXY_DIR/data"
+export PROXY_TEMP="domain.conf"             # domain.conf / domain-no-ssl.conf
 
 # Letsencrypt directories
 export LETSENCRYPT_HTML="$PROXY_DIR_DATA/html"
 export LETSENCRYPT_SSL="$PROXY_DIR_DATA/letsencrypt"
-export LETSENCRYPT_CERTS=""
 
 # Proxy configuration
 export NGINX_IMAGE="lroguet/rpi-nginx-proxy:latest"
