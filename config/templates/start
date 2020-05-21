@@ -21,7 +21,7 @@ stop_proxy() {
 
 renew_cert() {
 	stop_proxy
-        ${D}dir/certbot/letsencrypt renew
+	${DOCKERCOMPOSE_DIR} -f ${D}dir/docker-compose-certbot.yml up -d
 	start_proxy
 	}
 
