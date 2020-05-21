@@ -1,7 +1,7 @@
 #--------------------------------------------
-# MBOX Client and Database
+# Certbot file ...
 #----------------------------------------
-# Please edit not here, but the orginial configuration file. This files is created using a template.
+# Edit vars in .env
 #----------------------------------------
 
 version: "3"
@@ -16,5 +16,6 @@ services:
     volumes:
       - ./letsencrypt:/etc/letsencrypt
     environment:
-      - LETSENCRYPT_HOST=nextcloud.ckloth.de
-      - LETSENCRYPT_MAIL=email@ckloth.de
+      - LETSENCRYPT_HOST=${LETSENCRYPT_HOST}
+      - LETSENCRYPT_MAIL=${LETSENCRYPT_MAIL}
+      - LETSENCRYPT_DRYRUN=${LETSENCRYPT_DRYRUN}

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+echo "Certbot Renew Certificates ..."
+echo
+echo "Host(s): $LETSENCRYPT_HOST"
+echo "E-mail:  $LETSENCRYPT_MAIL"
+echo "Dry Run: $LETSENCRYPT_DRYRUN"
+echo
+
+if [ $LETSENCRYPT_DRYRUN = "yes" ]; then
+  dryrun="--dry-run"
+fi
+
+IFS="," read -r -a arr <<< "$LETSENCRYPT_HOST"
+
+for domain in ${arr[@]}
+do
+  echo
+  echo "Create certificate for $domain ..."
+  echo
+
+  certbot certonly --apache -d $domain --non-interactive --email $LETSENCRYPT_MAIL --agree-tos --no-eff-email --keep-until-expiring $dryrun
+
+done
+
+echo "Done."
+
+
