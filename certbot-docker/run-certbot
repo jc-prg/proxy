@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo "Certbot Renew Certificates ..."
+echo
+echo "Host(s): $LETSENCRYPT_HOST"
+echo "E-mail:  $LETSENCRYPT_MAIL"
+echo
+
+echo "Done."
