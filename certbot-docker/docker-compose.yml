@@ -1,0 +1,20 @@
+#--------------------------------------------
+# MBOX Client and Database
+#----------------------------------------
+# Please edit not here, but the orginial configuration file. This files is created using a template.
+#----------------------------------------
+
+version: "3"
+services:
+
+  certbot:
+    build: .
+    container_name: certbot_test
+    ports:
+      - 9080:80
+      - 9443:443
+    volumes:
+      - ./letsencrypt:/etc/letsencrypt
+    environment:
+      - LETSENCRYPT_HOST=nextcloud.ckloth.de
+      - LETSENCRYPT_MAIL=email@ckloth.de
