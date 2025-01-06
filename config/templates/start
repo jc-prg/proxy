@@ -21,7 +21,7 @@ stop_proxy() {
 
 renew_cert() {
 	stop_proxy
-	${DOCKERCOMPOSE_DIR} -f ${D}dir/docker-compose-certbot.yml up -d
+	${DOCKERCOMPOSE_DIR} -f ${D}dir/docker-compose-certbot.yml up
 	start_proxy
 	}
 
