@@ -1,12 +1,19 @@
 #!/bin/bash
 
 dir="${PROXY_DIR}"
+renewal_name="start_letsencrypt.info"
 
 echo
 echo "-------------------------------------"
-echo " Start jc://proxy/"
-echo " (by Christoph Kloth)"
+echo "Start jc://proxy/"
+echo "(by Christoph Kloth)"
 echo "-------------------------------------"
+if [ -f ${D}renewal_name ]; then
+    echo "Info: last letsencrypt renewal"
+    cat ${D}renewal_name
+else
+    echo "Info: no letsencrypt renewal documented yet"
+fi
 echo
 echo
 
@@ -22,6 +29,7 @@ stop_proxy() {
 renew_cert() {
 	stop_proxy
 	${DOCKERCOMPOSE_DIR} -f ${D}dir/docker-compose-certbot.yml up
+	date > ${D}dir/${D}renewal_name
 	start_proxy
 	}
 
