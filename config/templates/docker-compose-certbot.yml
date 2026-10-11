@@ -4,6 +4,9 @@
 # ${THIS_IS_THE_PROJECT_TEMPLATE}
 #--------------------------------------------
 
+# own project name: "down" must not remove the network of the proxy
+name: proxy-certbot
+
 services:
 
   certbot:
