@@ -29,10 +29,11 @@ This creates `start`, `docker-compose.yml` and `docker-compose-certbot.yml` in t
 
 *3. Request Certificates*
 
-Set `LETSENCRYPT_DRYRUN="yes"` for a first test, then `"no"` and run `./create prod` again.
+Test first with a dry run (no certificates are changed), then request the certificates:
 
 ```bash
 $ cd ../
+$ ./start dryrun
 $ ./start renew
 ```
 

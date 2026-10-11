@@ -44,8 +44,16 @@ renew_cert() {
 	start_proxy
 	}
 
+dryrun_cert() {
+	${D}docker_compose -f "${D}dir/docker-compose-certbot.yml" build --pull
+	stop_proxy
+	${D}docker_compose -f "${D}dir/docker-compose-certbot.yml" run --rm --service-ports -e LETSENCRYPT_DRYRUN=yes certbot
+	${D}docker_compose -f "${D}dir/docker-compose-certbot.yml" down
+	start_proxy
+	}
+
 usage() {
-	echo "Usage: ${D}0 [start|stop|renew]"
+	echo "Usage: ${D}0 [start|stop|renew|dryrun]"
 	}
 
 
@@ -58,6 +66,7 @@ if [ -z "${D}config" ]; then
   echo " 's' - start proxy"
   echo " 'x' - stop proxy"
   echo " 'z' - letsencrypt: check/renew certificates"
+  echo " 'd' - letsencrypt: dry run (test renewal, no changes)"
   echo
 
   count=0
@@ -75,6 +84,9 @@ if [ -z "${D}config" ]; then
     elif [[ ${D}k = z ]] ; then
        renew_cert
        break
+    elif [[ ${D}k = d ]] ; then
+       dryrun_cert
+       break
     else
        ((count=${D}count+1))
        printf "\nIterate for ${D}count times\n"
@@ -88,6 +100,8 @@ else
      stop_proxy
   elif [[ ${D}config = "renew" ]] ; then
      renew_cert
+  elif [[ ${D}config = "dryrun" ]] ; then
+     dryrun_cert
   else
      usage
      exit 1
