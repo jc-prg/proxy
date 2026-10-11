@@ -4,13 +4,12 @@
 # ${THIS_IS_THE_PROJECT_TEMPLATE}
 #--------------------------------------------
 
-version: '3'
 services:
 
 # PROXY
 #--------------------------------------------
 
-  proxy:  
+  proxy:
     image: ${NGINX_IMAGE}
     container_name: ${NGINX_CONTAINER}
     restart: always
@@ -19,12 +18,28 @@ services:
       - 443:443
 
     volumes:
-      - ${LETSENCRYPT_SSL}:/etc/letsencrypt
-      - ${NGINX_DOMAINS}:/etc/nginx/conf.d
-      - ${NGINX_CONFIG}:/etc/nginx/nginx.conf
-      - /var/run/docker.sock:/tmp/docker.sock
-      - ./log:/var/log/nginx
+      - ${LETSENCRYPT_SSL}:/etc/letsencrypt:ro
+      - ${NGINX_DOMAINS}:/etc/nginx/conf.d:ro
+      - ${NGINX_CONFIG}:/etc/nginx/nginx.conf:ro
 
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /run
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
 
-
-
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"

@@ -3,7 +3,7 @@
 
 # Domain configuration
 export PROXY_DOMAINS=(
-        "sub-domain-2.example.com;192.168.1.20:80"
+	"sub-domain-2.example.com;192.168.1.20:80"
 	"sub-domain-1.example.com;192.168.1.20:81"
 	)
 export LETSENCRYPT_DOMAINS="sub-domain-1.example.com,sub-domain-2.example.com"       # list your domains, separated with comma
@@ -13,7 +13,7 @@ export LETSENCRYPT_DRYRUN="yes"                                                 
 
 # Proxy configuration
 export PROXY_DIR="/projects/prod/proxy"
-export PROXY_DIR_DATA="$PROXY_DIR/data"
+export PROXY_DIR_DATA="$PROXY_DIR/config"
 export PROXY_TEMP="domain.conf"             # domain.conf / domain-no-ssl.conf
 
 # Letsencrypt directories
@@ -21,16 +21,15 @@ export LETSENCRYPT_HTML="$PROXY_DIR_DATA/html"
 export LETSENCRYPT_SSL="$PROXY_DIR_DATA/letsencrypt"
 
 # Proxy configuration
-export NGINX_IMAGE="lroguet/rpi-nginx-proxy:latest"				# "lroguet/rpi-nginx-proxy:latest" or "jwilder/nginx-proxy"
+export NGINX_IMAGE="nginx:stable-alpine"					# official multi-arch image (amd64, arm64, arm/v7)
 export NGINX_CONFIG="$PROXY_DIR_DATA/nginx/nginx.conf"
 export NGINX_DOMAINS="$PROXY_DIR_DATA/nginx-domains"
 export NGINX_CONTAINER="proxy"
 
 # System
-export DOCKERCOMPOSE_DIR="/usr/local/bin/docker-compose"
+export DOCKER_COMPOSE="docker compose"		# docker compose v2 plugin
 
 #---------------------------------------------
 export THIS_IS_THE_PROJECT_TEMPLATE="Please edit not here, but the orginial configuration file. This files is created using a template."
 export DOLLAR="$"
 export D="$"
-

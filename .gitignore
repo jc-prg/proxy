@@ -14,3 +14,13 @@ config/nginx-domains/off/
 config/nginx-domains/sicher/
 
 docker-compose-certbot.yml
+
+# private keys / certificates
+config/letsencrypt/
+
+# generated domain configs
+config/nginx-domains/*.conf
+
+# logs and IDE
+log/
+.idea/

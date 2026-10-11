@@ -1,7 +1,11 @@
 #!/bin/bash
 #--------------------------
 
-config="config_$1"
+set -eu
+
+cd "$(dirname "$0")"
+
+config="config_${1:-}"
 
 echo
 echo "-------------------------------------"
@@ -9,7 +13,7 @@ echo " Create jc://proxy/ configuration"
 echo " (by Christoph Kloth)"
 echo "-------------------------------------"
 
-if [ ! $1 ]; then
+if [ -z "${1:-}" ]; then
   echo
   echo "Press key - your options:"
   echo " 'q' - exit"
@@ -23,32 +27,38 @@ if [ ! $1 ]; then
        printf "\nQuitting from the program.\n"
        exit 0
     elif [[ $k = p ]] ; then
-       config="$config""prod"
+       config="${config}prod"
        printf "\nCreating prod ($config) ...\n"
        break
     elif [[ $k = t ]] ; then
-       config="$config""test"
+       config="${config}test"
        printf "\nCreating test ($config) ...\n"
        break
     else
-       ((count=$count+1))
+       ((count=count+1))
        printf "\nIterate for $count times\n"
        echo "Press 'q' to exit"
     fi
   done
 fi
 
-if ! [ -f $config ]; then
+if ! [ -f "$config" ]; then
   echo
   echo "ERROR: No config file available! Copy sample file to '$config', edit and run this script again."
   echo
-  exit 0
+  exit 1
 fi
 
-source $config
+# shellcheck source=/dev/null
+source "./$config"
+
+: "${PROXY_DIR:?missing in $config}" "${NGINX_DOMAINS:?missing in $config}" "${LETSENCRYPT_SSL:?missing in $config}" "${PROXY_TEMP:?missing in $config}"
+
 source templates/00-envsubst
 
-for domain in ${PROXY_DOMAINS[@]}
+cp templates/00-default.conf "$NGINX_DOMAINS/00-default.conf"
+
+for domain in "${PROXY_DOMAINS[@]}"
 do
     IFS=";" read -r -a arr <<< "${domain}"
 
@@ -56,8 +66,8 @@ do
     export SERVER_FORWARD="${arr[1]}"
     export SERVER_CONFIG="$SERVER_NAME.conf"
 
-    rm -rf $NGINX_DOMAINS/$SERVER_CONFIG
-    envsubst < $PROXY_DIR/config/templates/$PROXY_TEMP > $NGINX_DOMAINS/$SERVER_CONFIG
+    rm -f "$NGINX_DOMAINS/$SERVER_CONFIG"
+    envsubst < "templates/$PROXY_TEMP" > "$NGINX_DOMAINS/$SERVER_CONFIG"
 done
 
 echo

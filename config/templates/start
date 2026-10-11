@@ -1,6 +1,10 @@
 #!/bin/bash
+#--------------------------------------------------
+# ${THIS_IS_THE_PROJECT_TEMPLATE}
+#--------------------------------------------------
 
 dir="${PROXY_DIR}"
+docker_compose="${DOCKER_COMPOSE}"
 renewal_name="start_letsencrypt.info"
 
 echo
@@ -8,9 +12,9 @@ echo "-------------------------------------"
 echo "Start jc://proxy/"
 echo "(by Christoph Kloth)"
 echo "-------------------------------------"
-if [ -f ${D}renewal_name ]; then
+if [ -f "${D}dir/${D}renewal_name" ]; then
     echo "Info: last letsencrypt renewal"
-    cat ${D}renewal_name
+    cat "${D}dir/${D}renewal_name"
 else
     echo "Info: no letsencrypt renewal documented yet"
 fi
@@ -19,24 +23,35 @@ echo
 
 
 start_proxy() {
-	${DOCKERCOMPOSE_DIR} -f ${D}dir/docker-compose.yml up -d
+	${D}docker_compose -f "${D}dir/docker-compose.yml" up -d
 	}
 
 stop_proxy() {
-	${DOCKERCOMPOSE_DIR} -f ${D}dir/docker-compose.yml stop
+	${D}docker_compose -f "${D}dir/docker-compose.yml" stop
+	}
+
+update_images() {
+	${D}docker_compose -f "${D}dir/docker-compose.yml" pull
+	${D}docker_compose -f "${D}dir/docker-compose-certbot.yml" build --pull
 	}
 
 renew_cert() {
+	update_images
 	stop_proxy
-	${DOCKERCOMPOSE_DIR} -f ${D}dir/docker-compose-certbot.yml up
-	date > ${D}dir/${D}renewal_name
+	${D}docker_compose -f "${D}dir/docker-compose-certbot.yml" up --abort-on-container-exit
+	${D}docker_compose -f "${D}dir/docker-compose-certbot.yml" down
+	date > "${D}dir/${D}renewal_name"
 	start_proxy
 	}
 
+usage() {
+	echo "Usage: ${D}0 [start|stop|renew]"
+	}
 
-config=${D}1
 
-if [ ! ${D}1 ]; then
+config="${D}1"
+
+if [ -z "${D}config" ]; then
   echo "Press key - your options:"
   echo
   echo " 'q' - exit"
@@ -62,7 +77,7 @@ if [ ! ${D}1 ]; then
        break
     else
        ((count=${D}count+1))
-       printf "\nIterate for $count times\n"
+       printf "\nIterate for ${D}count times\n"
        echo "Press 'q' to exit"
     fi
   done
@@ -73,6 +88,9 @@ else
      stop_proxy
   elif [[ ${D}config = "renew" ]] ; then
      renew_cert
+  else
+     usage
+     exit 1
   fi
 fi
 

@@ -1,21 +1,26 @@
 #--------------------------------------------
-# Certbot file ...
-#----------------------------------------
-# Edit vars in .env
-#----------------------------------------
+# jc://proxy/ - certbot
+#--------------------------------------------
+# ${THIS_IS_THE_PROJECT_TEMPLATE}
+#--------------------------------------------
 
-version: "3"
 services:
 
   certbot:
     build: certbot
-    container_name: certbot_test
+    container_name: certbot
     ports:
       - 80:80
-      - 443:443
     volumes:
       - ${LETSENCRYPT_SSL}:/etc/letsencrypt
     environment:
       - LETSENCRYPT_HOST=${LETSENCRYPT_DOMAINS}
       - LETSENCRYPT_MAIL=${LETSENCRYPT_EMAIL}
       - LETSENCRYPT_DRYRUN=${LETSENCRYPT_DRYRUN}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
