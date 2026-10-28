@@ -66,6 +66,17 @@ do
     export SERVER_FORWARD="${arr[1]}"
     export SERVER_CONFIG="$SERVER_NAME.conf"
 
+    # optional 3rd field: snippet from templates/snippets/ (e.g. "nextcloud")
+    export SERVER_EXTRA=""
+    if [ -n "${arr[2]:-}" ]; then
+      snippet="templates/snippets/${arr[2]}.conf"
+      if ! [ -f "$snippet" ]; then
+        echo "ERROR: snippet '$snippet' for $SERVER_NAME not found."
+        exit 1
+      fi
+      SERVER_EXTRA=$'\n'"$(envsubst < "$snippet")"$'\n'
+    fi
+
     rm -f "$NGINX_DOMAINS/$SERVER_CONFIG"
     envsubst < "templates/$PROXY_TEMP" > "$NGINX_DOMAINS/$SERVER_CONFIG"
 done
