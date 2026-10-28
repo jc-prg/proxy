@@ -1,5 +1,7 @@
-# local configuration
+# local configuration (any .env.*, except the sample)
 .env
+.env.*
+!.env.sample
 config/config_prod
 
 # last certificate renewal (written by ./start)
