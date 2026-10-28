@@ -69,7 +69,7 @@ Add the entries from [config/templates/crontab](config/templates/crontab) to the
 * unknown hosts / direct ip requests are rejected (`00-default.conf`)
 * `X-Forwarded-For` is set to the real client ip, spoofed values are dropped
 * rate limit per client ip: 20 req/s, burst 100, max. 50 connections – adjust `limit_req_zone` in [config/nginx/nginx.conf](config/nginx/nginx.conf) and `limit_req` / `limit_conn` in the domain templates if needed
-* optional per-domain snippets (root entries only): `host;forward;snippet` in PROXY_DOMAINS inlines `config/templates/snippets/<snippet>.conf` – `nextcloud` hides the version (`status.php`, `ocs/.../cloud/capabilities`) from requests without Nextcloud client user agent, cookie or login (404)
+* optional per-entry snippets (root and folder entries): `host[/folder];forward;snippet` in PROXY_DOMAINS inlines `config/templates/snippets/<snippet>.conf` – `nextcloud` hides the version (`status.php`, `ocs/.../cloud/capabilities`) from requests without Nextcloud client user agent, cookie or login (404)
 * the proxy container runs read-only, without docker socket and with reduced capabilities
 * certificates (`config/letsencrypt/`) and generated domain configs are excluded from git
 

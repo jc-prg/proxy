@@ -88,27 +88,33 @@ while IFS= read -r line; do
       LOCATIONS[$host]=""
     fi
 
+    # forward "address[:port][/path]" - split for the snippets (regex locations need a plain proxy_pass)
+    forward="${forward%/}"
     export SERVER_NAME="$host"
-    export SERVER_FORWARD="${forward%/}"
+    export FORWARD_HOST="${forward%%/*}"
+    export FORWARD_PATH=""
+    [[ "$forward" == */* ]] && FORWARD_PATH="/${forward#*/}"
     export LOCATION_PATH="$path"
+    export LOCATION_REGEX="${path//./\\.}"
+
+    # optional 3rd field: snippet from config/templates/snippets/ (e.g. "nextcloud")
+    if [ -n "${snippet_name:-}" ]; then
+      snippet="config/templates/snippets/${snippet_name}.conf"
+      if ! [ -f "$snippet" ]; then
+        echo "ERROR: snippet '$snippet' for $host not found."
+        exit 1
+      fi
+      LOCATIONS[$host]+="$(envsubst < "$snippet")"$'\n\n'
+    fi
 
     if [ -z "$path" ]; then
-      # optional 3rd field: snippet from config/templates/snippets/ (e.g. "nextcloud")
-      if [ -n "${snippet_name:-}" ]; then
-        snippet="config/templates/snippets/${snippet_name}.conf"
-        if ! [ -f "$snippet" ]; then
-          echo "ERROR: snippet '$snippet' for $host not found."
-          exit 1
-        fi
-        LOCATIONS[$host]+="$(envsubst < "$snippet")"$'\n\n'
-      fi
+      # without a path the request uri is passed unchanged, with a path "/" is replaced by "/path/"
+      export SERVER_FORWARD="$forward"
+      [ -n "$FORWARD_PATH" ] && SERVER_FORWARD="$forward/"
       LOCATIONS[$host]+="$(envsubst < config/templates/location-root.conf)"$'\n\n'
       HAS_ROOT[$host]=1
     else
-      if [ -n "${snippet_name:-}" ]; then
-        echo "ERROR: snippets are only supported for root entries ('$line')."
-        exit 1
-      fi
+      export SERVER_FORWARD="$forward"
       LOCATIONS[$host]+="$(envsubst < config/templates/location-folder.conf)"$'\n\n'
     fi
 done <<< "$PROXY_DOMAINS"
