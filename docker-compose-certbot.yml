@@ -1,7 +1,7 @@
 #--------------------------------------------
 # jc://proxy/ - certbot
 #--------------------------------------------
-# ${THIS_IS_THE_PROJECT_TEMPLATE}
+# values are read from .env by docker compose
 #--------------------------------------------
 
 # own project name: "down" must not remove the network of the proxy

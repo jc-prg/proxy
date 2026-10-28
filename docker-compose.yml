@@ -1,7 +1,7 @@
 #--------------------------------------------
 # jc://proxy/
 #--------------------------------------------
-# ${THIS_IS_THE_PROJECT_TEMPLATE}
+# values are read from .env by docker compose
 #--------------------------------------------
 
 services:

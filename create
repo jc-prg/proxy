@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+#--------------------------
+# usage: ./create   (reads .env)
+
+set -eu
+
+cd "$(dirname "$0")"
+
+config=".env"
+
+echo
+echo "-------------------------------------"
+echo " Create jc://proxy/ configuration"
+echo " (by Christoph Kloth)"
+echo "-------------------------------------"
+
+if ! [ -f "$config" ]; then
+  echo
+  echo "ERROR: No config file '$config' available! Copy '.env.sample' to '.env', edit and run this script again."
+  echo
+  exit 1
+fi
+
+printf "\nCreating from %s ...\n" "$config"
+
+# export all variables of the config file for envsubst
+set -a
+# shellcheck source=/dev/null
+source "./$config"
+set +a
+
+: "${PROXY_DIR:?missing in $config}" "${NGINX_DOMAINS:?missing in $config}" "${LETSENCRYPT_SSL:?missing in $config}" "${PROXY_TEMP:?missing in $config}" "${PROXY_DOMAINS:?missing in $config}"
+
+# escaped "$" for the nginx templates
+export D="$"
+
+mkdir -p "$LETSENCRYPT_SSL" "$NGINX_DOMAINS"
+
+cp config/templates/00-default.conf "$NGINX_DOMAINS/00-default.conf"
+
+# collect location blocks per host ("host[/folder];forward[;snippet]")
+declare -A LOCATIONS=() HAS_ROOT=() SEEN=()
+hosts=()
+
+while IFS= read -r line; do
+    line="${line#"${line%%[![:space:]]*}"}"      # trim leading whitespace
+    line="${line%"${line##*[![:space:]]}"}"      # trim trailing whitespace
+    [[ -z "$line" || "$line" == \#* ]] && continue
+
+    IFS=";" read -r target forward snippet_name <<< "$line"
+
+    host="${target%%/*}"
+    path=""
+    if [[ "$target" == */* ]]; then
+      path="/${target#*/}"
+      path="${path%/}"
+    fi
+
+    if [ -z "$host" ] || [ -z "${forward:-}" ]; then
+      echo "ERROR: invalid entry '$line' (expected 'host[/folder];forward[;snippet]')."
+      exit 1
+    fi
+
+    if [ -n "${SEEN[$host$path/]:-}" ]; then
+      echo "ERROR: duplicate entry for '$host${path:-/}'."
+      exit 1
+    fi
+    SEEN[$host$path/]=1
+
+    if [ -z "${LOCATIONS[$host]+x}" ]; then
+      hosts+=("$host")
+      LOCATIONS[$host]=""
+    fi
+
+    export SERVER_NAME="$host"
+    export SERVER_FORWARD="${forward%/}"
+    export LOCATION_PATH="$path"
+
+    if [ -z "$path" ]; then
+      # optional 3rd field: snippet from config/templates/snippets/ (e.g. "nextcloud")
+      if [ -n "${snippet_name:-}" ]; then
+        snippet="config/templates/snippets/${snippet_name}.conf"
+        if ! [ -f "$snippet" ]; then
+          echo "ERROR: snippet '$snippet' for $host not found."
+          exit 1
+        fi
+        LOCATIONS[$host]+="$(envsubst < "$snippet")"$'\n\n'
+      fi
+      LOCATIONS[$host]+="$(envsubst < config/templates/location-root.conf)"$'\n\n'
+      HAS_ROOT[$host]=1
+    else
+      if [ -n "${snippet_name:-}" ]; then
+        echo "ERROR: snippets are only supported for root entries ('$line')."
+        exit 1
+      fi
+      LOCATIONS[$host]+="$(envsubst < config/templates/location-folder.conf)"$'\n\n'
+    fi
+done <<< "$PROXY_DOMAINS"
+
+for host in "${hosts[@]}"; do
+    export SERVER_NAME="$host"
+    SERVER_LOCATIONS="${LOCATIONS[$host]}"
+
+    # only subfolders defined: nothing to serve on /
+    if [ -z "${HAS_ROOT[$host]:-}" ]; then
+      SERVER_LOCATIONS+="    location /                {"$'\n'"                                return        404;"$'\n'"                                }"$'\n\n'
+    fi
+    export SERVER_LOCATIONS="${SERVER_LOCATIONS%$'\n\n'}"$'\n'
+
+    rm -f "$NGINX_DOMAINS/$host.conf"
+    envsubst < "config/templates/$PROXY_TEMP" > "$NGINX_DOMAINS/$host.conf"
+    echo " $host"
+done
+
+echo
+echo "Done."
+echo

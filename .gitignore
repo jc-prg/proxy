@@ -1,19 +1,15 @@
-
-certbot/letsencrypt.conf
-
+# local configuration
+.env
 config/config_prod
 
-/docker-compose.yml
-
-start
+# last certificate renewal (written by ./start)
+start_letsencrypt.info
 
 *.swp
 
 config/nginx-domains/off/
 
 config/nginx-domains/sicher/
-
-docker-compose-certbot.yml
 
 # private keys / certificates
 config/letsencrypt/

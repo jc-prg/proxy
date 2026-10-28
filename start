@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+#--------------------------------------------------
+# usage: ./start [start|stop|renew|dryrun]
+#--------------------------------------------------
+
+dir="$(cd "$(dirname "$0")" && pwd)"
+renewal_name="start_letsencrypt.info"
+config="$1"
+
+echo
+echo "-------------------------------------"
+echo "Start jc://proxy/"
+echo "(by Christoph Kloth)"
+echo "-------------------------------------"
+if [ -f "$dir/$renewal_name" ]; then
+    echo "Info: last letsencrypt renewal"
+    cat "$dir/$renewal_name"
+else
+    echo "Info: no letsencrypt renewal documented yet"
+fi
+echo
+
+
+load_env() {
+	# shellcheck source=/dev/null
+	source "$dir/.env"
+	docker_compose="${DOCKER_COMPOSE:-docker compose}"
+	}
+
+create_config() {
+	nano "$dir/.env"
+	if ! bash "$dir/create"; then
+	  echo "ERROR: creating the configuration failed - fix .env and try again."
+	  return 1
+	fi
+	load_env
+	echo "Restart the proxy to apply the new configuration ('x' - stop, then 's' - start)."
+	}
+
+start_proxy() {
+	$docker_compose -f "$dir/docker-compose.yml" up -d
+	}
+
+stop_proxy() {
+	$docker_compose -f "$dir/docker-compose.yml" stop
+	}
+
+update_images() {
+	$docker_compose -f "$dir/docker-compose.yml" pull
+	$docker_compose -f "$dir/docker-compose-certbot.yml" build --pull
+	}
+
+renew_cert() {
+	update_images
+	stop_proxy
+	$docker_compose -f "$dir/docker-compose-certbot.yml" up --abort-on-container-exit
+	$docker_compose -f "$dir/docker-compose-certbot.yml" down
+	date > "$dir/$renewal_name"
+	start_proxy
+	}
+
+dryrun_cert() {
+	$docker_compose -f "$dir/docker-compose-certbot.yml" build --pull
+	stop_proxy
+	$docker_compose -f "$dir/docker-compose-certbot.yml" run --rm --service-ports -e LETSENCRYPT_DRYRUN=yes certbot
+	$docker_compose -f "$dir/docker-compose-certbot.yml" down
+	start_proxy
+	}
+
+usage() {
+	echo "Usage: $0 [start|stop|renew|dryrun]"
+	}
+
+
+if ! [ -f "$dir/.env" ]; then
+  # only ask in an interactive call without arguments (never in cron)
+  if [ -n "$config" ] || ! [ -t 0 ]; then
+    echo "ERROR: No config file '$dir/.env' available! Run $0 without arguments to create one."
+    exit 1
+  fi
+  printf "No configuration (.env) found. Create one from .env.sample? [y/n] "
+  read -r -n 1 k
+  echo
+  if [[ $k != [yYjJ] ]] ; then
+    echo "Quitting from the program."
+    exit 0
+  fi
+  cp "$dir/.env.sample" "$dir/.env"
+  chmod 600 "$dir/.env"
+  create_config || exit 1
+  echo
+fi
+
+load_env
+
+if [ -z "$config" ]; then
+  echo "Press key - your options:"
+  echo
+  echo " 'q' - exit"
+  echo " 'c' - create configuration (edit .env, then ./create)"
+  echo " 's' - start proxy"
+  echo " 'x' - stop proxy"
+  echo " 'z' - letsencrypt: check/renew certificates"
+  echo " 'd' - letsencrypt: dry run (test renewal, no changes)"
+  echo
+
+  count=0
+  while : ; do
+    read -n 1 k <&1
+    if [[ $k = q ]] ; then
+       printf "\nQuitting from the program.\n"
+       exit 0
+    elif [[ $k = c ]] ; then
+       echo
+       create_config
+       break
+    elif [[ $k = s ]] ; then
+       start_proxy
+       break
+    elif [[ $k = x ]] ; then
+       stop_proxy
+       break
+    elif [[ $k = z ]] ; then
+       renew_cert
+       break
+    elif [[ $k = d ]] ; then
+       dryrun_cert
+       break
+    else
+       ((count=$count+1))
+       printf "\nIterate for $count times\n"
+       echo "Press 'q' to exit"
+    fi
+  done
+else
+  if [[ $config = "start" ]] ; then
+     start_proxy
+  elif [[ $config = "stop" ]] ; then
+     stop_proxy
+  elif [[ $config = "renew" ]] ; then
+     renew_cert
+  elif [[ $config = "dryrun" ]] ; then
+     dryrun_cert
+  else
+     usage
+     exit 1
+  fi
+fi
+
+
+echo
+echo "Done."
