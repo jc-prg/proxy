@@ -36,7 +36,63 @@ create_config() {
 	load_env
 	}
 
+check_certs() {
+	# nginx does not start if a certificate of a domain config is missing - check in a temporary
+	# proxy container (same mounts as nginx, letsencrypt/live is readable for root only)
+	local missing
+	missing_domains=()
+	missing="$($docker_compose -f "$dir/docker-compose.yml" run --rm --no-deps -T --entrypoint sh proxy -c '
+		for cert in $(sed -n "s/^[[:space:]]*ssl_certificate[[:space:]]\{1,\}\([^;\$]*\);.*/\1/p" /etc/nginx/conf.d/*.conf | sort -u); do
+		  [ -f "$cert" ] || echo "$cert"
+		done' </dev/null)" || { echo "ERROR: could not check the certificates."; return 1; }
+	[ -z "$missing" ] && return 0
+
+	echo
+	echo "ERROR: missing certificates - the proxy would not start:"
+	for cert in $missing; do
+	  missing_domains+=("$(basename "$(dirname "$cert")")")
+	  echo "  ${missing_domains[-1]}  ($cert)"
+	done
+	echo
+	echo "Hint: domains you no longer need: remove them from PROXY_DOMAINS and run ./create"
+	echo "      (or delete your own config in NGINX_DOMAINS)."
+	echo
+	return 1
+	}
+
+ensure_certs() {
+	# check the certificates, offer to create missing ones (interactive only, not after a renewal)
+	check_certs && return 0
+	[ -n "${no_cert_prompt:-}" ] && return 1
+	if ! [ -t 0 ]; then
+	  echo "Create the certificates with '$0 renew'."
+	  return 1
+	fi
+
+	# certbot requests the domains of LETSENCRYPT_DOMAINS only (and renews them weekly)
+	local domain not_listed=()
+	for domain in "${missing_domains[@]}"; do
+	  [[ ",${LETSENCRYPT_DOMAINS// /}," == *",$domain,"* ]] || not_listed+=("$domain")
+	done
+	if [ ${#not_listed[@]} -gt 0 ]; then
+	  echo "Not in LETSENCRYPT_DOMAINS: ${not_listed[*]}"
+	  echo "Add them in .env (menu 'c'), then create the certificates with '$0 renew' (menu 'z')."
+	  return 1
+	fi
+
+	printf "Create the certificates now (the proxy is stopped meanwhile)? [y/n] "
+	read -r -n 1 k
+	echo
+	if [[ $k != [yYjJ] ]] ; then
+	  echo "Cancelled."
+	  return 1
+	fi
+	request_certs
+	check_certs
+	}
+
 restart_proxy() {
+	ensure_certs || { echo "Proxy not restarted."; return 1; }
 	# check the new configuration in the running proxy first - keep it running if invalid
 	if [ -n "$($docker_compose -f "$dir/docker-compose.yml" ps -q --status running proxy)" ]; then
 	  if ! $docker_compose -f "$dir/docker-compose.yml" exec -T proxy nginx -t; then
@@ -49,6 +105,7 @@ restart_proxy() {
 	}
 
 start_proxy() {
+	ensure_certs || { echo "Proxy not started."; return 1; }
 	$docker_compose -f "$dir/docker-compose.yml" up -d
 	}
 
@@ -61,13 +118,17 @@ update_images() {
 	$docker_compose -f "$dir/docker-compose-certbot.yml" build --pull
 	}
 
-renew_cert() {
+request_certs() {
 	update_images
 	stop_proxy
 	$docker_compose -f "$dir/docker-compose-certbot.yml" up --abort-on-container-exit
 	$docker_compose -f "$dir/docker-compose-certbot.yml" down
 	date > "$dir/$renewal_name"
-	start_proxy
+	}
+
+renew_cert() {
+	request_certs
+	no_cert_prompt=1 start_proxy
 	}
 
 dryrun_cert() {
@@ -75,7 +136,7 @@ dryrun_cert() {
 	stop_proxy
 	$docker_compose -f "$dir/docker-compose-certbot.yml" run --rm --service-ports -e LETSENCRYPT_DRYRUN=yes certbot
 	$docker_compose -f "$dir/docker-compose-certbot.yml" down
-	start_proxy
+	no_cert_prompt=1 start_proxy
 	}
 
 usage() {
@@ -154,7 +215,7 @@ if [ -z "$config" ]; then
   done
 else
   if [[ $config = "start" ]] ; then
-     start_proxy
+     start_proxy || exit 1
   elif [[ $config = "stop" ]] ; then
      stop_proxy
   elif [[ $config = "renew" ]] ; then

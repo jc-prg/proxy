@@ -61,6 +61,8 @@ The proxy is stopped while certbot (standalone) is running on port 80, then star
 $ ./start start
 ```
 
+Before starting, `./start` checks in a temporary proxy container that the certificates of all domain configs exist. If one is missing, the proxy is not started (it would not run without it) and the missing domains are listed. Interactively it asks whether to create the certificates now (the domains must be in LETSENCRYPT\_DOMAINS), otherwise it cancels – request them with `./start renew` (step 3).
+
 *5. Automate*
 
 Add the entries from [config/templates/crontab](config/templates/crontab) to the crontab of root (`sudo crontab -e`). `./start renew` runs once a week, pulls updated images and renews certificates if needed.
