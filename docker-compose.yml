@@ -21,6 +21,7 @@ services:
       - ${LETSENCRYPT_SSL}:/etc/letsencrypt:ro
       - ${NGINX_DOMAINS}:/etc/nginx/conf.d:ro
       - ${NGINX_CONFIG}:/etc/nginx/nginx.conf:ro
+      - ${NGINX_PAGES:-./config/pages}:/usr/share/nginx/pages:ro
 
     read_only: true
     tmpfs:

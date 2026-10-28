@@ -34,11 +34,14 @@ set +a
 # escaped "$" for the nginx templates
 export D="$"
 
+# placeholder pages ("host;@name" serves $NGINX_PAGES/name/), mounted by docker-compose.yml
+NGINX_PAGES="${NGINX_PAGES:-config/pages}"
+
 mkdir -p "$LETSENCRYPT_SSL" "$NGINX_DOMAINS"
 
 cp config/templates/00-default.conf "$NGINX_DOMAINS/00-default.conf"
 
-# collect location blocks per host ("host[/folder];forward[;snippet]")
+# collect location blocks per host ("host[/folder];forward|@page[;snippet]")
 declare -A LOCATIONS=() HAS_ROOT=() SEEN=()
 hosts=()
 
@@ -57,7 +60,7 @@ while IFS= read -r line; do
     fi
 
     if [ -z "$host" ] || [ -z "${forward:-}" ]; then
-      echo "ERROR: invalid entry '$line' (expected 'host[/folder];forward[;snippet]')."
+      echo "ERROR: invalid entry '$line' (expected 'host[/folder];forward|@page[;snippet]')."
       exit 1
     fi
 
@@ -67,7 +70,11 @@ while IFS= read -r line; do
       invalid="host '$host' (letters, digits, '.', '-')"
     elif [ -n "$path" ] && { ! [[ "$path" =~ ^(/[A-Za-z0-9._~-]+)+$ ]] || [[ "$path" =~ /\.\.?(/|$) ]]; }; then
       invalid="folder '$path' (letters, digits, '.', '_', '~', '-', '/', no '.' or '..' segments)"
-    elif ! [[ "$forward" =~ ^[A-Za-z0-9.-]+(:[0-9]{1,5})?(/[A-Za-z0-9._~/-]*)?$ ]]; then
+    elif [[ "$forward" == @* ]] && ! [[ "$forward" =~ ^@[A-Za-z0-9_-]+$ ]]; then
+      invalid="page '$forward' (expected '@name', letters, digits, '_', '-')"
+    elif [[ "$forward" == @* ]] && [ -n "${snippet_name:-}" ]; then
+      invalid="snippet '$snippet_name' (not supported for pages)"
+    elif [[ "$forward" != @* ]] && ! [[ "$forward" =~ ^[A-Za-z0-9.-]+(:[0-9]{1,5})?(/[A-Za-z0-9._~/-]*)?$ ]]; then
       invalid="forward '$forward' (expected 'address[:port][/path]' without 'http://')"
     elif [ -n "${snippet_name:-}" ] && ! [[ "$snippet_name" =~ ^[A-Za-z0-9_-]+$ ]]; then
       invalid="snippet '$snippet_name' (letters, digits, '_', '-')"
@@ -105,6 +112,22 @@ while IFS= read -r line; do
         exit 1
       fi
       LOCATIONS[$host]+="$(envsubst < "$snippet")"$'\n\n'
+    fi
+
+    # "@name": static placeholder page instead of a backend
+    if [[ "$forward" == @* ]]; then
+      export PAGE_NAME="${forward#@}"
+      if ! [ -f "$NGINX_PAGES/$PAGE_NAME/index.html" ]; then
+        echo "ERROR: page '$NGINX_PAGES/$PAGE_NAME/index.html' for $host$path not found."
+        exit 1
+      fi
+      if [ -z "$path" ]; then
+        LOCATIONS[$host]+="$(envsubst < config/templates/location-page-root.conf)"$'\n\n'
+        HAS_ROOT[$host]=1
+      else
+        LOCATIONS[$host]+="$(envsubst < config/templates/location-page-folder.conf)"$'\n\n'
+      fi
+      continue
     fi
 
     if [ -z "$path" ]; then

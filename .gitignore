@@ -19,6 +19,10 @@ config/letsencrypt/
 # generated domain configs
 config/nginx-domains/*.conf
 
+# own placeholder pages (except the sample)
+config/pages/*/
+!config/pages/placeholder/
+
 # logs and IDE
 log/
 .idea/
