@@ -34,7 +34,18 @@ create_config() {
 	  return 1
 	fi
 	load_env
-	echo "Restart the proxy to apply the new configuration ('x' - stop, then 's' - start)."
+	}
+
+restart_proxy() {
+	# check the new configuration in the running proxy first - keep it running if invalid
+	if [ -n "$($docker_compose -f "$dir/docker-compose.yml" ps -q --status running proxy)" ]; then
+	  if ! $docker_compose -f "$dir/docker-compose.yml" exec -T proxy nginx -t; then
+	    echo "ERROR: new configuration is invalid - proxy keeps running with the old one."
+	    return 1
+	  fi
+	fi
+	stop_proxy
+	start_proxy
 	}
 
 start_proxy() {
@@ -112,7 +123,16 @@ if [ -z "$config" ]; then
        exit 0
     elif [[ $k = c ]] ; then
        echo
-       create_config
+       if create_config ; then
+         printf "Restart the proxy now to apply the new configuration? [y/n] "
+         read -r -n 1 k
+         echo
+         if [[ $k = [yYjJ] ]] ; then
+           restart_proxy
+         else
+           echo "Not restarted - apply later with 'x' (stop) and 's' (start)."
+         fi
+       fi
        break
     elif [[ $k = s ]] ; then
        start_proxy
