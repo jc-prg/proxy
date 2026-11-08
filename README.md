@@ -28,7 +28,7 @@ This creates one NGINX config per domain in [config/nginx-domains](config/nginx-
   * use [config/templates/domain.conf.sample](config/templates/domain.conf.sample) to create a configuration for your domain and copy it to a file per domain into `config/nginx-domains` or ...
   * use your own NGINX configuration file
 
-Entry format: `host[/folder];forward|@page[;snippet]`
+Entry format: `host[/folder];forward|@page|https://target[;snippet]`
 
 ```
 PROXY_DOMAINS="
@@ -36,12 +36,14 @@ cloud.example.com;192.168.1.20:80;nextcloud
 apps.example.com;192.168.1.20:81
 apps.example.com/folder;192.168.1.50:81
 soon.example.com;@placeholder
+apps.example.com/old;https://new.example.com/app
 "
 ```
 
   * `host;forward` – `https://host/...` is forwarded to `http://forward/...`
   * `host/folder;forward` – `https://host/folder/...` is forwarded to `http://forward/...` (the prefix is stripped, `/folder` redirects to `/folder/`). Redirects and cookie paths of the backend are rewritten, `X-Forwarded-Prefix: /folder` is sent. Links inside the HTML are *not* rewritten – the application must use relative URLs or support a base path. A host with only folder entries returns 404 on `/`.
   * `host[/folder];@page` – a static placeholder page is served instead of forwarding, from the subfolder `NGINX_PAGES/page/` (default `config/pages/page/`). It needs an `index.html`, further files (css, images) in the subfolder are served as well, every other path returns the `index.html`. Snippets are not supported for pages. See [config/pages/placeholder](config/pages/placeholder/index.html) for an example; changes to the page are live without restart, a new `NGINX_PAGES` requires a restart.
+  * `host[/folder];https://target[/path]` – permanent redirect (301): `https://host/folder/rest?query` redirects to `https://target/path/rest?query`, `/folder` itself to `https://target/path`. Without a folder the whole host is redirected. Snippets are not supported for redirects.
   * all entries of a host share one NGINX config and one certificate
 
 *3. Request Certificates*
