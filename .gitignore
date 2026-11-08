@@ -1,11 +1,11 @@
-
-certbot/letsencrypt.conf
-
+# local configuration (any .env.*, except the sample)
+.env
+.env.*
+!.env.sample
 config/config_prod
 
-/docker-compose.yml
-
-start
+# last certificate renewal (written by ./start)
+start_letsencrypt.info
 
 *.swp
 
@@ -13,4 +13,16 @@ config/nginx-domains/off/
 
 config/nginx-domains/sicher/
 
-docker-compose-certbot.yml
+# private keys / certificates
+config/letsencrypt/
+
+# generated domain configs
+config/nginx-domains/*.conf
+
+# own placeholder pages (except the sample)
+config/pages/*/
+!config/pages/placeholder/
+
+# logs and IDE
+log/
+.idea/

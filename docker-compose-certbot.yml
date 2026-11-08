@@ -1,0 +1,29 @@
+#--------------------------------------------
+# jc://proxy/ - certbot
+#--------------------------------------------
+# values are read from .env by docker compose
+#--------------------------------------------
+
+# own project name: "down" must not remove the network of the proxy
+name: proxy-certbot
+
+services:
+
+  certbot:
+    build: certbot
+    container_name: certbot
+    ports:
+      - 80:80
+    volumes:
+      - ${LETSENCRYPT_SSL}:/etc/letsencrypt
+    environment:
+      - LETSENCRYPT_HOST=${LETSENCRYPT_DOMAINS}
+      - LETSENCRYPT_MAIL=${LETSENCRYPT_EMAIL}
+      - LETSENCRYPT_DRYRUN=${LETSENCRYPT_DRYRUN}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
